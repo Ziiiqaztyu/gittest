@@ -20,6 +20,13 @@ def get_next_image_number(path):
                 pass
     return max(numbers, default=0) + 1
 
+def run_git_command(command):
+    """Chạy lệnh Git và xử lý lỗi."""
+    try:
+        subprocess.run(command, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error during git command '{' '.join(command)}': {e}")
+
 # Bước 1: Chụp ảnh và lưu vào repository local
 camera = cv2.VideoCapture(0)
 ret, frame = camera.read()
@@ -39,19 +46,20 @@ if ret:
 
     # Khởi tạo repository nếu chưa được khởi tạo
     if not os.path.exists(".git"):
-        subprocess.run(["git", "init"])
-        subprocess.run(["git", "remote", "add", "origin", repository_url])
-    else:
-        # Đồng bộ hóa với GitHub trước khi đẩy các thay đổi
-        try:
-            subprocess.run(["git", "pull", "origin", "master", "--allow-unrelated-histories"], check=True)
-        except subprocess.CalledProcessError as e:
-            print(f"Error during git pull: {e}")
+        run_git_command(["git", "init"])
+        run_git_command(["git", "remote", "add", "origin", repository_url])
+
+    # Đồng bộ hóa với GitHub trước khi đẩy các thay đổi
+    try:
+        run_git_command(["git", "pull", "origin", "master", "--allow-unrelated-histories"])
+    except subprocess.CalledProcessError as e:
+        print(f"Error during git pull: {e}")
+        # Xử lý lỗi nếu cần, có thể thêm mã để giải quyết xung đột
 
     # Thực hiện các lệnh Git để đẩy ảnh lên GitHub
-    subprocess.run(["git", "add", image_name])
-    subprocess.run(["git", "commit", "-m", f"Add new image: {image_name}"])
-    subprocess.run(["git", "push", "--set-upstream", "origin", "master"])
+    run_git_command(["git", "add", image_name])
+    run_git_command(["git", "commit", "-m", f"Add new image: {image_name}"])
+    run_git_command(["git", "push", "--set-upstream", "origin", "master"])
     print("Ảnh đã được đẩy lên GitHub.")
 else:
     print("Không thể chụp ảnh từ camera.")
@@ -67,4 +75,4 @@ if response.status_code == 200:
         file.write(response.content)
     print("Ảnh đã được tải về máy.")
 else:
-    print("Không thể tải ảnh từ GitHub.")
+    print(f"Không thể tải ảnh từ GitHub. HTTP Status Code: {response.status_code}")
