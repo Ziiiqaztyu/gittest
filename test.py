@@ -27,7 +27,10 @@ if ret:
         subprocess.run(["git", "remote", "add", "origin", repository_url])
     else:
         # Đồng bộ hóa với GitHub trước khi đẩy các thay đổi
-        subprocess.run(["git", "pull", "origin", "master"], check=True)
+        try:
+            subprocess.run(["git", "pull", "origin", "master", "--allow-unrelated-histories"], check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error during git pull: {e}")
 
     # Thực hiện các lệnh Git để đẩy ảnh lên GitHub
     subprocess.run(["git", "add", image_name])
