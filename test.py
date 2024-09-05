@@ -6,14 +6,30 @@ import requests
 # Cấu hình GitHub
 repository_url = "https://github.com/Ziiiqaztyu/gittest.git"
 local_repo_path = r"E:\nothing"  # Đường dẫn lưu ảnh
-image_name = "captured_image.jpg"
-image_path = os.path.join(local_repo_path, image_name)
+
+def get_next_image_number(path):
+    """Lấy số tiếp theo cho tên ảnh."""
+    files = os.listdir(path)
+    numbers = []
+    for file in files:
+        if file.endswith(".jpg"):
+            try:
+                number = int(file.split('.')[0].split('_')[-1])
+                numbers.append(number)
+            except ValueError:
+                pass
+    return max(numbers, default=0) + 1
 
 # Bước 1: Chụp ảnh và lưu vào repository local
 camera = cv2.VideoCapture(0)
 ret, frame = camera.read()
 
 if ret:
+    # Lấy số ảnh tiếp theo
+    image_number = get_next_image_number(local_repo_path)
+    image_name = f"captured_image_{image_number}.jpg"
+    image_path = os.path.join(local_repo_path, image_name)
+
     # Lưu ảnh
     cv2.imwrite(image_path, frame)
     print(f"Ảnh đã được lưu tại {image_path}")
@@ -47,7 +63,7 @@ response = requests.get(image_url)
 
 if response.status_code == 200:
     # Lưu ảnh xuống máy
-    with open("downloaded_image_from_github.jpg", "wb") as file:
+    with open(f"downloaded_{image_name}", "wb") as file:
         file.write(response.content)
     print("Ảnh đã được tải về máy.")
 else:
