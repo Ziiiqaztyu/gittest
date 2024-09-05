@@ -76,3 +76,18 @@ if response.status_code == 200:
     print("Ảnh đã được tải về máy.")
 else:
     print(f"Không thể tải ảnh từ GitHub. HTTP Status Code: {response.status_code}")
+
+# Bước 3: Xóa ảnh khi nhấn phím 'd'
+print("Nhấn 'd' để xóa ảnh khỏi GitHub.")
+key = input()  # Nhận phím từ người dùng
+
+if key == 'd':
+    # Xóa ảnh khỏi local repository
+    os.remove(image_path)
+    print(f"Ảnh {image_name} đã được xóa khỏi local.")
+
+    # Thực hiện lệnh Git để xóa ảnh khỏi GitHub
+    run_git_command(["git", "rm", image_name])
+    run_git_command(["git", "commit", "-m", f"Remove image: {image_name}"])
+    run_git_command(["git", "push"])
+    print(f"Ảnh {image_name} đã được xóa khỏi GitHub.")
